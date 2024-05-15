@@ -1,5 +1,12 @@
+resource "random_string" "test" {
+  length = 4
+  lower  = true
+  upper  = false
+  special = false
+}
+
 resource "azurerm_resource_group" "resourcegroup" {
-  name     = var.resource_group_name
+  name     = "${var.prefix}-${random_string.test.result}-rg"
   location = var.location
   tags = {
     Owner = "${var.email}" ,
@@ -9,7 +16,7 @@ resource "azurerm_resource_group" "resourcegroup" {
 }
 
 resource "azurerm_virtual_network" "vnet_for_databricks" {
-  name = "${var.prefix}-vnet"
+  name = "${var.prefix}-${random_string.test.result}-vnet"
   location = var.location
   resource_group_name = azurerm_resource_group.resourcegroup.name
   address_space = [var.cidr]
@@ -17,7 +24,7 @@ resource "azurerm_virtual_network" "vnet_for_databricks" {
 }
 
 resource "azurerm_network_security_group" "nsg_for_databricks" {
-  name                = "${var.prefix}-nsg"
+  name                = "${var.prefix}-${random_string.test.result}-nsg"
   location            = var.location
   resource_group_name = azurerm_resource_group.resourcegroup.name
   tags                = {
@@ -56,7 +63,7 @@ resource "azurerm_network_security_rule" "azfrontdoor" {
 }
 
 resource "azurerm_subnet" "public" {
-  name                 = "${var.prefix}-public"
+  name                 = "${var.prefix}-${random_string.test.result}-public"
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet_for_databricks.name
   address_prefixes     = [cidrsubnet(var.cidr, 3, 0)]
@@ -83,7 +90,7 @@ variable "private_subnet_endpoints" {
 }
 
 resource "azurerm_subnet" "private" {
-  name                 = "${var.prefix}-private"
+  name                 = "${var.prefix}-${random_string.test.result}-private"
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet_for_databricks.name
   address_prefixes     = [cidrsubnet(var.cidr, 3, 1)]
@@ -112,7 +119,7 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_subnet" "plsubnet" {
-  name                                           = "${var.prefix}-privatelink"
+  name                                           = "${var.prefix}-${random_string.test.result}-pl"
   resource_group_name                            = azurerm_resource_group.resourcegroup.name
   virtual_network_name                           = azurerm_virtual_network.vnet_for_databricks.name
   address_prefixes                               = [cidrsubnet(var.cidr, 3, 2)]
@@ -122,9 +129,9 @@ resource "azurerm_subnet" "plsubnet" {
 
 # Workspace definition
 resource "azurerm_databricks_workspace" "this" {
-  name                          = var.databricks_workspace_name
+  name                          = "${var.prefix}-${random_string.test.result}-ws"
   resource_group_name           = resource.azurerm_resource_group.resourcegroup.name
-  managed_resource_group_name   = var.managed_rg
+  managed_resource_group_name   = "${var.prefix}-${random_string.test.result}-mrg"
   location                      = var.location
   sku                           = "premium"
   public_network_access_enabled = true // no front end privatelink deployment
@@ -137,7 +144,7 @@ resource "azurerm_databricks_workspace" "this" {
   }
   custom_parameters {
     no_public_ip             = true
-    storage_account_name     = var.ws_managed_storage_account_name
+    storage_account_name     = "${var.prefix}${random_string.test.result}mrg"
     storage_account_sku_name = "Standard_LRS"
     virtual_network_id = azurerm_virtual_network.vnet_for_databricks.id
     private_subnet_name = azurerm_subnet.private.name
@@ -164,7 +171,7 @@ resource "azurerm_private_endpoint" "uiapi" {
   subnet_id           = azurerm_subnet.plsubnet.id
 
   private_service_connection {
-    name                           = "ple-${var.databricks_workspace_name}-uiapi"
+    name                           = "${random_string.test.result}-uiapi-pep"
     private_connection_resource_id = azurerm_databricks_workspace.this.id
     is_manual_connection           = false
     subresource_names              = ["databricks_ui_api"]

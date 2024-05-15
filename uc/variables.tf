@@ -4,10 +4,8 @@ variable "databricks_resource_id" {
 
 variable "uc_metastore_name" {
   description = "the name of the metastore"
-  type = string
+  type        = string
 }
-
-
 
 locals {
   resource_regex            = "(?i)subscriptions/(.+)/resourceGroups/(.+)/providers/Microsoft.Databricks/workspaces/(.+)"

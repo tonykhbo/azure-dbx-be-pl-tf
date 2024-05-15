@@ -1,3 +1,10 @@
+resource "random_string" "test" {
+  length = 4
+  lower  = true
+  upper  = false
+  special = false
+}
+
 resource "azurerm_databricks_access_connector" "unity" {
   name                = "${local.prefix}-databricks-mi"
   resource_group_name = data.azurerm_resource_group.this.name
@@ -8,7 +15,7 @@ resource "azurerm_databricks_access_connector" "unity" {
 }
 
 resource "azurerm_storage_account" "unity_catalog" {
-  name                     = "${local.prefix}storage"
+  name                     = "${local.prefix}${random_string.test.result}"
   resource_group_name      = data.azurerm_resource_group.this.name
   location                 = data.azurerm_resource_group.this.location
   tags                     = data.azurerm_resource_group.this.tags

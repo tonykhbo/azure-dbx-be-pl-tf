@@ -6,7 +6,13 @@ terraform {
     databricks = {
       source = "databricks/databricks"
     }
+    random = {
+      source = "hashicorp/random"
+    }
   }
+}
+
+provider "random" {
 }
 
 provider "azurerm" {
@@ -15,5 +21,13 @@ provider "azurerm" {
 }
 
 provider "databricks" {
-  host = local.databricks_workspace_host
+  alias = "workspace"
+  host  = local.databricks_workspace_host
+}
+
+provider "databricks" {
+  alias      = "accounts"
+  account_id = "827e3e09-89ba-4dd2-9161-a3301d0f21c0"
+  auth_type  = "azure-cli"
+  host       = "https://accounts.azuredatabricks.net"
 }
