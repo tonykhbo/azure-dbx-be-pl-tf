@@ -95,9 +95,6 @@ resource "azurerm_subnet" "private" {
   virtual_network_name = azurerm_virtual_network.vnet_for_databricks.name
   address_prefixes     = [cidrsubnet(var.cidr, 3, 1)]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = true
-
   delegation {
     name = "databricks"
     service_delegation {
