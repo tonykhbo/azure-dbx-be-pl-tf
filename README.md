@@ -12,9 +12,11 @@ Each folder will also contain its own terraform state as we walk through the set
 
 In the```azure_dbx_infra``` folder, copy the ```env.tfvars.example``` file into ```env.tfvars```. Modify the variables in the file to define your specifications. 
 
-Make sure the [az cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) is installed.
+Make sure you have [az cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed on your terminal/cli.
 
 On the terminal, run ```az login``` to log in to your Azure Portal. Depending on your permissions, you may need to request the cloud administrator to give you the appropriate permissions to create a resource group and objects within that.
+
+Install the [terraform cli](https://developer.hashicorp.com/terraform/install) before proceeding.
 
 In the terminal, change directory into the ```azure_dbx_infra``` folder and run ```terraform init``` to initializes the terraform configuration files. It will automatically download the appropriate providers defined in the ```providers.tf```. 
 
