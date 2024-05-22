@@ -120,7 +120,6 @@ resource "azurerm_subnet" "plsubnet" {
   resource_group_name                            = azurerm_resource_group.resourcegroup.name
   virtual_network_name                           = azurerm_virtual_network.vnet_for_databricks.name
   address_prefixes                               = [cidrsubnet(var.cidr, 3, 2)]
-  private_endpoint_network_policies_enabled      = false
 }
 
 
