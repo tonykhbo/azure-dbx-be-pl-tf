@@ -27,7 +27,7 @@ provider "databricks" {
 
 provider "databricks" {
   alias      = "accounts"
-  account_id = "827e3e09-89ba-4dd2-9161-a3301d0f21c0"
+  account_id = var.account_console_id
   auth_type  = "azure-cli"
   host       = "https://accounts.azuredatabricks.net"
 }

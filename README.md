@@ -26,11 +26,30 @@ After checking the plan, run ```terraform apply -var-file="env.tfvars"``` to cre
 
 ...
 
-### Optional - Setting Up Unity Catalog (Creating the metastore and assigning the workspace)
+## Governance 
+
+Below are optional choices in which you can configure UC. 
+
+###  (Optional) Choice 1 - Set Up Unity Catalog (Creating the metastore, storage location, access connector, and assigning the workspace)
+
+
+Change directory into the ```uc-secure``` folder.
+
+Again, copy the ```env.tfvars.example``` file into ```env.tfvars```. Grab the ```resource ID``` string of the Databricks resource previously created and put it in the variable in the ```env.tfvars``` file. 
+
+Run ```terraform init``` here to initializes the terraform configuration files again. 
+
+Again, run ```terraform plan -var-file="env.tfvars"``` to scope out the resources to be made/changed. 
+
+After checking the plan, run ```terraform apply -var-file="env.tfvars"``` to create the objects. It will ask you to confirm in the terminal.
+
+Your workspace should now be enabled with Unity Catalog.
+
+### (Optional) Choice 2 - Set Up Unity Catalog by Default (Creating the metastore and assigning the workspace)
 
 
 
-Change directory into the ```uc``` folder.
+Change directory into the ```uc-by-default``` folder.
 
 Again, copy the ```env.tfvars.example``` file into ```env.tfvars```. Grab the ```resource ID``` string of the Databricks resource previously created and put it in the variable in the ```env.tfvars``` file. 
 
