@@ -47,3 +47,8 @@ variable description {
   description = "For tagging the RG"
   type        = string
 }
+
+variable create_date {
+  description = "For tagging the RG"
+  type        = string
+}

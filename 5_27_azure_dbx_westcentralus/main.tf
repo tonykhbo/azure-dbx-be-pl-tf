@@ -5,13 +5,30 @@ resource "random_string" "test" {
   special = false
 }
 
+locals {
+  dbfs_resource_id = "${azurerm_databricks_workspace.this.managed_resource_group_id}/providers/Microsoft.Storage/storageAccounts/${azurerm_databricks_workspace.this.custom_parameters[0].storage_account_name}"
+}
+
+# Access Connector needed for Private DBFS
+resource "azurerm_databricks_access_connector" "dbfs" {
+  name                = "${var.prefix}-${random_string.test.result}-databricks-mi"
+  resource_group_name = azurerm_resource_group.resourcegroup.name
+  location            = var.location
+  identity {
+    type = "SystemAssigned"
+  }
+
+  depends_on = [ azurerm_resource_group.resourcegroup ]
+}
+
 resource "azurerm_resource_group" "resourcegroup" {
   name     = "${var.prefix}-${random_string.test.result}-rg"
   location = var.location
   tags = {
     Owner = "${var.email}" ,
     RemoveAfter = "${var.remove_date}",
-    Description = "${var.description}"
+    Description = "${var.description}",
+    CreatedOn = "${var.create_date}",
   }
 }
 
@@ -133,6 +150,8 @@ resource "azurerm_databricks_workspace" "this" {
   public_network_access_enabled = true // no front end privatelink deployment
   network_security_group_rules_required = "NoAzureDatabricksRules"
   customer_managed_key_enabled = false # TODO for more secure deployment
+  default_storage_firewall_enabled = false
+  access_connector_id = azurerm_databricks_access_connector.dbfs.id
   tags                          = { 
     Owner = "${var.email}" ,
     RemoveAfter = "${var.remove_date}",
@@ -150,7 +169,8 @@ resource "azurerm_databricks_workspace" "this" {
   }
   depends_on = [
     azurerm_subnet_network_security_group_association.private,
-    azurerm_subnet_network_security_group_association.public
+    azurerm_subnet_network_security_group_association.public,
+    azurerm_databricks_access_connector.dbfs
   ]
 }
 

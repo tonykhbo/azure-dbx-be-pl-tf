@@ -4,6 +4,8 @@ resource "databricks_metastore" "this" {
   storage_root = format("abfss://%s@%s.dfs.core.windows.net/",
     azurerm_storage_container.unity_catalog.name,
   azurerm_storage_account.unity_catalog.name)
+  region = data.azurerm_resource_group.this.location
+  owner = "tony.bo@databricks.com"
   force_destroy = true
 }
 

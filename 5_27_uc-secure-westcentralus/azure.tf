@@ -20,7 +20,7 @@ resource "azurerm_storage_account" "unity_catalog" {
   location                 = data.azurerm_resource_group.this.location
   tags                     = data.azurerm_resource_group.this.tags
   account_tier             = "Standard"
-  account_replication_type = "RAGRS"
+  account_replication_type = "LRS"
   is_hns_enabled           = true
 }
 
