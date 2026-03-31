@@ -1,66 +1,61 @@
-# Azure Databricks Backend Private Link Terraform
+# Azure Databricks Backend Private Link with Unity Catalog and NCC
 
-Each folder contains a separate set of terraform that can you can run.
-Run the terraform in this order:
+Terraform for deploying an Azure Databricks workspace with Backend Private Link, Unity Catalog (metastore), and Network Connectivity Config (NCC) for private storage access — in a single deployment.
 
-1. azure_dbx_infra
-2. uc
+## Architecture
 
-Each folder will also contain its own terraform state as we walk through the setup below.
+```
+modules/
+├── databricks-workspace/   # VNet, NSGs, subnets, workspace, private endpoint + DNS
+├── unity-catalog/          # Access connector, ADLS Gen2 storage, metastore, assignment
+└── ncc-storage/            # Network Connectivity Config bound to workspace + PE rules
+```
+
+All three modules are wired together from the root and deployed in a single `terraform apply`.
+
+## Prerequisites
+
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed and authenticated
+- [Terraform CLI](https://developer.hashicorp.com/terraform/install) installed
 
 ## Setup
 
-In the```azure_dbx_infra``` folder, copy the ```env.tfvars.example``` file into ```env.tfvars```. Modify the variables in the file to define your specifications. 
+**1. Authenticate with Azure:**
+```bash
+az login
+```
 
-Make sure you have [az cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed on your terminal/cli.
+**2. Configure variables:**
+```bash
+cp env.tfvars.example env.tfvars
+```
 
-On the terminal, run ```az login``` to log in to your Azure Portal. Depending on your permissions, you may need to request the cloud administrator to give you the appropriate permissions to create a resource group and objects within that.
+Edit `env.tfvars` and fill in:
+| Variable | Description |
+|---|---|
+| `prefix` | Short identifier used to name all resources |
+| `location` | Azure region (e.g. `centralus`) |
+| `subscription_id` | Your Azure subscription ID |
+| `databricks_account_id` | Databricks account console ID (from `accounts.azuredatabricks.net`) |
+| `uc_metastore_name` | Name for the Unity Catalog metastore |
+| `email` / `remove_date` / `description` | Resource tags |
 
-Install the [terraform cli](https://developer.hashicorp.com/terraform/install) before proceeding.
+**3. Deploy:**
+```bash
+terraform init
+terraform plan -var-file="env.tfvars"
+terraform apply -var-file="env.tfvars"
+```
 
-In the terminal, change directory into the ```azure_dbx_infra``` folder and run ```terraform init``` to initializes the terraform configuration files. It will automatically download the appropriate providers defined in the ```providers.tf```. 
+## What Gets Created
 
-Run ```terraform plan -var-file="env.tfvars"``` to scope out the resources to be made/changed. 
-
-After checking the plan, run ```terraform apply -var-file="env.tfvars"``` to create the objects. It will ask you to confirm in the terminal.
-
-...
-
-## Governance 
-
-Below are optional choices in which you can configure UC. 
-
-###  (Optional) Choice 1 - Set Up Unity Catalog (Creating the metastore, storage location, access connector, and assigning the workspace)
-
-
-Change directory into the ```uc-secure``` folder.
-
-Again, copy the ```env.tfvars.example``` file into ```env.tfvars```. Grab the ```resource ID``` string of the Databricks resource previously created and put it in the variable in the ```env.tfvars``` file. 
-
-Run ```terraform init``` here to initializes the terraform configuration files again. 
-
-Again, run ```terraform plan -var-file="env.tfvars"``` to scope out the resources to be made/changed. 
-
-After checking the plan, run ```terraform apply -var-file="env.tfvars"``` to create the objects. It will ask you to confirm in the terminal.
-
-Your workspace should now be enabled with Unity Catalog.
-
-### (Optional) Choice 2 - Set Up Unity Catalog by Default (Creating the metastore and assigning the workspace)
-
-
-
-Change directory into the ```uc-by-default``` folder.
-
-Again, copy the ```env.tfvars.example``` file into ```env.tfvars```. Grab the ```resource ID``` string of the Databricks resource previously created and put it in the variable in the ```env.tfvars``` file. 
-
-Run ```terraform init``` here to initializes the terraform configuration files again. 
-
-Again, run ```terraform plan -var-file="env.tfvars"``` to scope out the resources to be made/changed. 
-
-After checking the plan, run ```terraform apply -var-file="env.tfvars"``` to create the objects. It will ask you to confirm in the terminal.
-
-Your workspace should now be enabled with Unity Catalog.
+- **Resource group**, VNet, NSGs, and subnets (public, private, private-link)
+- **Databricks workspace** (Premium, no public IP) with private endpoint and DNS zone
+- **Unity Catalog metastore** backed by ADLS Gen2 with managed identity data access
+- **Network Connectivity Config (NCC)** bound to the workspace with private endpoint rules for metastore storage, auto-approved via Azure CLI
 
 ## Clean Up
 
-Clean up the resources created, run ```terraform destroy -var-file="env.tfvars"``` in the ```uc``` folder first, then in the ```azure_dbx_infra``` folder. 
+```bash
+terraform destroy -var-file="env.tfvars"
+```
